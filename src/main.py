@@ -1,9 +1,8 @@
 from fastapi import FastAPI, Depends
 from fastapi_users import FastAPIUsers
-
-from src.database import User
 from src.auth.manager import get_user_manager
 from src.auth.base_config import auth_backend
+from src.auth.models import User
 from src.auth.schemas import UserRead, UserCreate
 
 app = FastAPI(
@@ -24,6 +23,8 @@ app.include_router(
     prefix="/auth",
     tags=["auth"],
 )
+
+
 current_user = fastapi_users.current_user()
 
 
