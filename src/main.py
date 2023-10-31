@@ -84,7 +84,7 @@ async def delete_docs(
     document_id: int,
     session: AsyncSession = Depends(get_async_session),
     user: User = Depends(current_user)
-):
+    ):
     stmt = delete(document).where((document.c.id == document_id) & (document.c.owner_id == user.id))
     result = await session.execute(stmt)
     if result.rowcount == 0:
@@ -94,6 +94,41 @@ async def delete_docs(
 
     await session.commit()
     return {"status": "success", "deleted id": document_id}
+
+
+@app.get("/get_ids", tags=["Docs"])
+async def get_ids(
+    document_name: str,
+    session: AsyncSession = Depends(get_async_session),
+):
+    # Query the document table for documents with the given name
+    query = select(document.c.name, document.c.id).where(document.c.name == document_name).limit(10)
+    result = await session.execute(query)
+    matching_documents = [dict(r._mapping) for r in result]
+
+    # Retrieve the IDs of the matching documents
+    document_ids = [doc['id'] for doc in matching_documents]
+
+    # Initialize the list of references
+    references = []
+
+    # Query the referrals table for references at each level of depth
+    for depth in range(3):
+        # Query the referrals table for references where the source_id matches the document IDs
+        query = select(referrals).where(referrals.c.source_id.in_(document_ids))
+        result = await session.execute(query)
+        matching_references = [dict(r._mapping) for r in result]
+
+        # Retrieve the IDs of the referenced documents
+        referenced_document_ids = [ref['target_id'] for ref in matching_references]
+
+        # Append the references to the list
+        references.extend(matching_references)
+
+        # Update the document IDs for the next level of depth
+        document_ids = referenced_document_ids
+    references = [dict(t) for t in {tuple(d.items()) for d in references}]
+    return {"matching_documents": matching_documents, "references": references}
 
 
 
