@@ -89,6 +89,9 @@ async def delete_docs(
     result = await session.execute(stmt)
     if result.rowcount == 0:
         raise HTTPException(status_code=404, detail="Document not found or you do not have permission to delete it")
+    stmt = delete(referrals).where(referrals.c.source_id == document_id)
+    await session.execute(stmt)
+
     await session.commit()
     return {"status": "success", "deleted id": document_id}
 
