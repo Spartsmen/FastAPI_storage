@@ -5,6 +5,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, insert, delete
 from sqlalchemy.exc import IntegrityError
 
+from typing import List, Dict
+
 from src.auth.manager import get_user_manager
 from src.auth.base_config import auth_backend
 from src.auth.models import User
@@ -49,7 +51,7 @@ async def add_docs(
             document.c.id)
         result = await session.execute(stmt)
         inserted_id = result.scalar_one()
-        for id in entered_ids:
+        for id in set(entered_ids):
             query = select(document).where((document.c.id == id))
             result = await session.execute(query)
             existing_document = result.scalar_one_or_none()
@@ -101,34 +103,52 @@ async def get_ids(
     document_name: str,
     session: AsyncSession = Depends(get_async_session),
 ):
-    # Query the document table for documents with the given name
     query = select(document.c.name, document.c.id).where(document.c.name == document_name).limit(10)
     result = await session.execute(query)
     matching_documents = [dict(r._mapping) for r in result]
-
-    # Retrieve the IDs of the matching documents
     document_ids = [doc['id'] for doc in matching_documents]
-
-    # Initialize the list of references
     references = []
-
-    # Query the referrals table for references at each level of depth
-    for depth in range(3):
-        # Query the referrals table for references where the source_id matches the document IDs
+    for _ in range(3):
         query = select(referrals).where(referrals.c.source_id.in_(document_ids))
         result = await session.execute(query)
         matching_references = [dict(r._mapping) for r in result]
-
-        # Retrieve the IDs of the referenced documents
         referenced_document_ids = [ref['target_id'] for ref in matching_references]
-
-        # Append the references to the list
         references.extend(matching_references)
-
-        # Update the document IDs for the next level of depth
         document_ids = referenced_document_ids
     references = [dict(t) for t in {tuple(d.items()) for d in references}]
     return {"matching_documents": matching_documents, "references": references}
 
 
+@app.get("/get_ids1", tags=["Docs"])
+async def get_ids1(
+    document_name: str,
+    session: AsyncSession = Depends(get_async_session),
+):
+    query = select(document.c.name, document.c.id).where(document.c.name == document_name).limit(10)
+    result = await session.execute(query)
+    matching_documents = [dict(r._mapping) for r in result]
+    for doc in matching_documents:
+        doc['referrals'] = await get_references([doc['id']], session)
+    return {"matching_documents": matching_documents}
 
+
+
+
+async def get_references(document_ids: List[int], session: AsyncSession, depth: int = 0) -> List[Dict]:
+    if depth > 3:
+        return []
+    query = select(referrals).where(referrals.c.source_id.in_(document_ids))
+    result = await session.execute(query)
+    matching_references = [dict(r._mapping) for r in result]
+    referenced_document_ids = [ref['target_id'] for ref in matching_references]
+
+    # Fetch the documents for the referenced ids
+    query = select(document.c.name, document.c.id).where(document.c.id.in_(referenced_document_ids))
+    result = await session.execute(query)
+    referenced_documents = [dict(r._mapping) for r in result]
+
+    # Add the referenced documents to the references list
+    for doc in referenced_documents:
+        doc['references'] = await get_references([doc['id']], session, depth + 1)
+
+    return referenced_documents
