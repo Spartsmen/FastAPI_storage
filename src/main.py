@@ -112,21 +112,18 @@ async def search(
 
     document_ids = [doc['id'] for doc in matching_documents]
     references = []
+    lenf = 0
     for _ in range(3):
-        lenf = len(matching_documents) + len(references)
-        print(lenf)
-        if lenf >= 10:
-            break
-        else:
-            query = select(document.c.name, document.c.id, referrals.c.target_id).join(referrals, document.c.id ==
-                referrals.c.source_id).where(referrals.c.source_id.in_(document_ids))
-            result = await session.execute(query)
-            matching_references = [dict(r._mapping) for r in result]
-            references.extend(matching_references)
-            document_ids = [ref['target_id'] for ref in matching_references][:lenf]
+        query = select(document.c.name, document.c.id, referrals.c.target_id).join(referrals, document.c.id ==
+            referrals.c.source_id).where(referrals.c.source_id.in_(document_ids))
+        result = await session.execute(query)
+        matching_references = [dict(r._mapping) for r in result][:10-lenf]
+        references.extend(matching_references)
+        lenf += len(matching_documents) + len(references)
+        document_ids = [ref['target_id'] for ref in matching_references][:10-lenf]
 
-            if not document_ids:
-                break
+        if not document_ids or lenf >= 10:
+            break
 
     references = [dict(t) for t in {tuple(d.items()) for d in references}]
     return {"matching_documents": matching_documents, "references": references}
