@@ -120,7 +120,7 @@ async def search(
         matching_references = [dict(r._mapping) for r in result][:10-lenf]
         references.extend(matching_references)
         lenf += len(matching_documents) + len(references)
-        document_ids = [ref['target_id'] for ref in matching_references][:10-lenf]
+        document_ids = [ref['target_id'] for ref in matching_references]
 
         if not document_ids or lenf >= 10:
             break
