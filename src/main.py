@@ -159,4 +159,5 @@ async def get_references(document_ids: List[int], session: AsyncSession, depth_s
         doc['references'] = await get_references([doc['id']], session,depth_start, depth + 1)
     return referenced_documents
 
-
+# docker build -t myapp .
+# docker run -p 8000:8000 myapp

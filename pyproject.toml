@@ -24,6 +24,7 @@ faker = "^19.13.0"
 locust = "^2.18.1"
 influxdb-client = {extras = ["async"], version = "^1.38.0"}
 pydantic = "^2.4.2"
+gunicorn = "^21.2.0"
 
 
 [build-system]
