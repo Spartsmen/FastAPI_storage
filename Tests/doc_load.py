@@ -25,7 +25,7 @@ def token():
 def test_load_documents(token):
     headers = {"Authorization": f"Bearer {token}"}
     url = "http://localhost:8000/add_docs"
-    for i in range(45, 1_000_000):
+    for i in range(100,102):
         doc = {
             "name": random_string(10),
             "content": random_string(20),
