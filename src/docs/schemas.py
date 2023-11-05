@@ -5,3 +5,6 @@ class DocsCreate(BaseModel):
     name: str
     content: str
     referrals: str
+
+
+

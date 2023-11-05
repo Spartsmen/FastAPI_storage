@@ -101,6 +101,8 @@ async def delete_docs(
 @app.get("/search", tags=["Docs"])
 async def search(
     document_name: str,
+    depth: int = 3,
+    limit: int = 10,
     session: AsyncSession = Depends(get_async_session),
 ):
     query = select(document.c.name, document.c.id).where(document.c.name == document_name).limit(1)
@@ -113,16 +115,16 @@ async def search(
     document_ids = [doc['id'] for doc in matching_documents]
     references = []
     lenf = 0
-    for _ in range(3):
+    for _ in range(depth):
         query = select(document.c.name, document.c.id, referrals.c.target_id).join(referrals, document.c.id ==
             referrals.c.source_id).where(referrals.c.source_id.in_(document_ids))
         result = await session.execute(query)
-        matching_references = [dict(r._mapping) for r in result][:10-lenf]
+        matching_references = [dict(r._mapping) for r in result][:limit-lenf]
         references.extend(matching_references)
         lenf += len(matching_documents) + len(references)
         document_ids = [ref['target_id'] for ref in matching_references]
 
-        if not document_ids or lenf >= 10:
+        if not document_ids or lenf >= limit:
             break
 
     references = [dict(t) for t in {tuple(d.items()) for d in references}]
@@ -132,18 +134,19 @@ async def search(
 @app.get("/get_ids1", tags=["Docs"])
 async def get_ids1(
     document_name: str,
+    depth_start: int = 3,
     session: AsyncSession = Depends(get_async_session),
 ):
     query = select(document.c.name, document.c.id).where(document.c.name == document_name).limit(10)
     result = await session.execute(query)
     matching_documents = [dict(r._mapping) for r in result]
     for doc in matching_documents:
-        doc['referrals'] = await get_references([doc['id']], session)
+        doc['referrals'] = await get_references([doc['id']], session, depth_start)
     return {"matching_documents": matching_documents}
 
 
-async def get_references(document_ids: List[int], session: AsyncSession, depth: int = 0) -> List[Dict]:
-    if depth > 3:
+async def get_references(document_ids: List[int], session: AsyncSession, depth_start: int, depth: int=0) -> List[Dict]:
+    if depth >= depth_start:
         return []
     query = select(referrals).where(referrals.c.source_id.in_(document_ids))
     result = await session.execute(query)
@@ -153,7 +156,7 @@ async def get_references(document_ids: List[int], session: AsyncSession, depth: 
     result = await session.execute(query)
     referenced_documents = [dict(r._mapping) for r in result]
     for doc in referenced_documents:
-        doc['references'] = await get_references([doc['id']], session, depth + 1)
+        doc['references'] = await get_references([doc['id']], session,depth_start, depth + 1)
     return referenced_documents
 
 

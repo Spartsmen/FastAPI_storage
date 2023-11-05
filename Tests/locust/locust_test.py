@@ -2,7 +2,7 @@ import json
 import string
 from locust import task, constant_pacing, HttpUser, LoadTestShape
 import random
-from Tests.locust.config import cfg, logger
+from config import cfg, logger
 
 
 class DocUser(HttpUser):
@@ -51,7 +51,7 @@ class StagesShape(LoadTestShape):
         {"duration": 40, "users": 2, "spawn_rate": 1},
         {"duration": 60, "users": 4, "spawn_rate": 1},
         {"duration": 80, "users": 8, "spawn_rate": 1},
-        {"duration": 100, "users": 9, "spawn_rate": 1},
+        {"duration": 100, "users": 10, "spawn_rate": 1},
     ]
 
     def tick(self):
