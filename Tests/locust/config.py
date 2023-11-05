@@ -6,6 +6,7 @@ class Config:
     pacing_sec = 0.1
     api_host = 'http://localhost:8000'
 
+
 class LogConfig():
     logger = logging.getLogger('demo_logger')
     logger.setLevel('DEBUG')
