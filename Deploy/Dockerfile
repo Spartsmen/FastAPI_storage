@@ -7,4 +7,4 @@ RUN pip install poetry
 RUN poetry config virtualenvs.create false && poetry install
 COPY . /app/
 EXPOSE 8000
-CMD ["poetry", "run", "gunicorn", "-w", "4", "myapp:app"]
+CMD ["poetry", "run", "gunicorn", "-w", "4", "main:app"]
