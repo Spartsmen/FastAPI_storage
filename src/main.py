@@ -159,5 +159,9 @@ async def get_references(document_ids: List[int], session: AsyncSession, depth_s
         doc['references'] = await get_references([doc['id']], session,depth_start, depth + 1)
     return referenced_documents
 
-# docker build -t myapp .
-# docker run -p 8000:8000 myapp
+# docker build . -t storage:1.0.0 
+# docker run -p 8000:8000 storage:1.0.0
+# cd projects/FastAPI_storage
+# docker exec -it f33eb047f2c2 alembic revision --autogenerate -m "DB creation"
+# docker exec -it ad6eae36febb psql -U postgres postgres
+#  ssh -L 8000:localhost:8000 root@91.201.113.91

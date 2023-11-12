@@ -22,11 +22,11 @@ class DocUser(HttpUser):
             "Authorization": f"Bearer {self.token_id}",
         }
         letters = string.ascii_lowercase
-        ran = random.choice([random.randint(0, 10), 3])
+        ran = random.choice([random.randint(1, 11), 3])
         body = {
             "name": ''.join(random.choice(letters) for _ in range(10)),
             "content": ''.join(random.choice(letters) for _ in range(20)),
-            "referrals": ','.join(str(random.randint(25, 3294)) for _ in range(ran))
+            "referrals": ','.join(str(random.randint(1, 480)) for _ in range(ran))
         }
         with self.client.post("/add_docs", headers=headers, json=body, catch_response=True,
                               name=transaction) as request:
@@ -50,8 +50,8 @@ class StagesShape(LoadTestShape):
         {"duration": 20, "users": 1, "spawn_rate": 1},
         {"duration": 40, "users": 2, "spawn_rate": 1},
         {"duration": 60, "users": 4, "spawn_rate": 1},
-        {"duration": 80, "users": 8, "spawn_rate": 1},
-        {"duration": 100, "users": 10, "spawn_rate": 1},
+        {"duration": 80, "users": 6, "spawn_rate": 1},
+        {"duration": 100, "users": 8, "spawn_rate": 1},
     ]
 
     def tick(self):
