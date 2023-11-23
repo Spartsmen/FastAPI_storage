@@ -165,3 +165,10 @@ async def get_references(document_ids: List[int], session: AsyncSession, depth_s
 # docker exec -it f33eb047f2c2 alembic revision --autogenerate -m "DB creation"
 # docker exec -it ad6eae36febb psql -U postgres postgres
 #  ssh -L 8000:localhost:8000 root@91.201.113.91
+# docker ps --filter "ancestor=kindest/node:v1.21.10"
+# kubectl port-forward fastapi-storage-7df879cd87-bkprj 8000:8000
+# kubectl apply -f .kube/
+# docker restart $(docker ps -q --filter "ancestor=kindest/node:v1.21.10")
+# kubectl port-forward fastapi-storage-c4bc64cf5-rpn5j 80:8000
+# kubectl describe pod
+# du -h --max-depth=1 /    df -h 

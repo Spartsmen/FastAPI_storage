@@ -1,0 +1,5 @@
+Tests/
+kubectl/
+.kube/
+Tiltfile
+Dockerfile
