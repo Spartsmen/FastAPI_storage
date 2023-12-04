@@ -15,7 +15,7 @@ def random_referrals(num_docs):
 
 @pytest.fixture(scope="module")
 def token():
-    url = "http://127.0.0.1:8000/login"
+    url = "http://127.0.0.1:80/login"
     credentials = {"username": "12", "password": "12"}
     response = requests.post(url, data=credentials)
     assert response.status_code == 200, f"Authentication failed: {response.text}"
@@ -24,8 +24,8 @@ def token():
 
 def test_load_documents(token):
     headers = {"Authorization": f"Bearer {token}"}
-    url = "http://127.0.0.1:8000/add_docs"
-    for i in range(2,20):
+    url = "http://127.0.0.1:80/add_docs"
+    for i in range(2):
         doc = {
             "name": random_string(10),
             "content": random_string(20),

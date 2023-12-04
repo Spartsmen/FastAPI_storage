@@ -86,13 +86,15 @@ async def delete_docs(
     document_id: int,
     session: AsyncSession = Depends(get_async_session),
     user: User = Depends(current_user)
-    ):
-    stmt = delete(document).where((document.c.id == document_id) & (document.c.owner_id == user.id))
-    result = await session.execute(stmt)
+):
+    referrals_stmt = delete(referrals).where(referrals.c.source_id == document_id)
+    await session.execute(referrals_stmt)
+
+    document_stmt = delete(document).where((document.c.id == document_id) & (document.c.owner_id == user.id))
+    result = await session.execute(document_stmt)
+
     if result.rowcount == 0:
         raise HTTPException(status_code=404, detail="Document not found or you do not have permission to delete it")
-    stmt = delete(referrals).where(referrals.c.source_id == document_id)
-    await session.execute(stmt)
 
     await session.commit()
     return {"status": "success", "deleted id": document_id}
@@ -164,11 +166,13 @@ async def get_references(document_ids: List[int], session: AsyncSession, depth_s
 # cd projects/FastAPI_storage
 # docker exec -it f33eb047f2c2 alembic revision --autogenerate -m "DB creation"
 # docker exec -it ad6eae36febb psql -U postgres postgres
-#  ssh -L 8000:localhost:8000 root@91.201.113.91
-# docker ps --filter "ancestor=kindest/node:v1.21.10"
+#  ssh -L 80:localhost:80 root@91.201.113.91
+# docker ps --filter "ancestor=kindest/node:v1.21.10" я 
 # kubectl port-forward fastapi-storage-7df879cd87-bkprj 8000:8000
 # kubectl apply -f .kube/
 # docker restart $(docker ps -q --filter "ancestor=kindest/node:v1.21.10")
 # kubectl port-forward fastapi-storage-c4bc64cf5-rpn5j 80:8000
 # kubectl describe pod
 # du -h --max-depth=1 /    df -h 
+# alias k='kubectl'
+# kubectl port-forward service/traefik 80:80
